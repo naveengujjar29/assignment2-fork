@@ -27,6 +27,11 @@ public class UserService implements IUserService {
 
     @Override
     public UserDto saveUserDetails(UserDto userDto) {
+        // Check for the required fields before proceeding further.
+        if (userDto.getFirstName() == null || userDto.getLastName() == null ||
+                userDto.getEmail() == null || userDto.getPassword() == null) {
+            throw new BadRequestException("Required fields have not been provided.");
+        }
 
         Optional<User> existingUser = this.userRepository.findByEmail(userDto.getEmail());
         if (existingUser.isPresent()) {

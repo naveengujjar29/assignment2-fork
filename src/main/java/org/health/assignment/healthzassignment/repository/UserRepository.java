@@ -3,7 +3,6 @@ package org.health.assignment.healthzassignment.repository;
 import jakarta.transaction.Transactional;
 import org.health.assignment.healthzassignment.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;

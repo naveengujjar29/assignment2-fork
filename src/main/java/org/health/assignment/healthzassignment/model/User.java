@@ -34,7 +34,6 @@ public class User implements Serializable {
 
     @UpdateTimestamp
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(updatable = false)
     private Date accountUpdated;
 
     public UUID getId() {
