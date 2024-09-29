@@ -73,8 +73,8 @@ public class UserController {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
         String emailAddress = this.tokenUtil.getEmailAddressFromToken(authorizationToken);
-        UserDto savedUser = userService.updateUserDetails(emailAddress, userDto);
-        return ResponseEntity.ok().body(savedUser);
+        userService.updateUserDetails(emailAddress, userDto);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
 
