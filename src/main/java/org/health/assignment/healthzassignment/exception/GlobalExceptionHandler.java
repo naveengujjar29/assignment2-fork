@@ -7,10 +7,12 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
+
 @ControllerAdvice
 public class GlobalExceptionHandler{
 
-    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    @ExceptionHandler({HttpRequestMethodNotSupportedException.class})
     public ResponseEntity<Void> handleMethodNotAllowed() {
         HttpHeaders headers = new HttpHeaders();
         headers.add("Pragma", "no-cache");
@@ -19,6 +21,12 @@ public class GlobalExceptionHandler{
         // Return 405 Method Not Allowed with no body and custom headers
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
                 .headers(headers)
+                .build();
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<Void> handleMethodNotFound() {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .build();
     }
 }

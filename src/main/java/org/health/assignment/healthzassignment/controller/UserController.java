@@ -3,8 +3,11 @@ package org.health.assignment.healthzassignment.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.health.assignment.healthzassignment.dto.UserDto;
+import org.health.assignment.healthzassignment.exception.BadRequestException;
 import org.health.assignment.healthzassignment.service.IUserService;
 import org.health.assignment.healthzassignment.utils.TokenUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +29,8 @@ public class UserController {
     @Autowired
     private TokenUtil tokenUtil;
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(UserController.class);
+
     /**
      * This API will create the user.
      *
@@ -34,6 +39,7 @@ public class UserController {
      */
     @PostMapping(consumes = "application/json", produces = "application/json")
     public ResponseEntity<UserDto> createUser(@RequestBody UserDto userDto) {
+        LOGGER.debug("Creating the user.");
         UserDto savedUser = userService.saveUserDetails(userDto);
         return ResponseEntity.ok().body(savedUser);
     }
@@ -46,6 +52,11 @@ public class UserController {
      */
     @GetMapping(value = "/self", produces = "application/json")
     public ResponseEntity<UserDto> getSelfUserDetails() {
+
+        if (request.getQueryString() != null) {
+            throw new BadRequestException("Query Parameters are not allowed.");
+        }
+
         String authorizationToken = request.getHeader("Authorization");
         // Validate the token.
         boolean isTokenValid = this.tokenUtil.validateToken(authorizationToken);
@@ -66,6 +77,11 @@ public class UserController {
      */
     @PutMapping(value = "/self", produces = "application/json")
     public ResponseEntity<UserDto> updateSelfUserDetails(@RequestBody UserDto userDto) {
+
+        if (request.getQueryString() != null) {
+            throw new BadRequestException("Query Parameters are not allowed.");
+        }
+
         String authorizationToken = request.getHeader("Authorization");
         //Validate the token.
         boolean isTokenValid = this.tokenUtil.validateToken(authorizationToken);
