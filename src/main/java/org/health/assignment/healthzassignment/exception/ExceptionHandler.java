@@ -66,7 +66,7 @@ public class ExceptionHandler {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @org.springframework.web.bind.annotation.ExceptionHandler({MethodArgumentNotValidException.class, UnrecognizedPropertyException.class,
+    @org.springframework.web.bind.annotation.ExceptionHandler({UnrecognizedPropertyException.class,
             HttpMessageNotReadableException.class, MissingRequestHeaderException.class})
     public ResponseEntity<ErrorResponse> handleValidationException(Exception e) {
         e.printStackTrace(System.err);
