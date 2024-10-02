@@ -6,12 +6,19 @@ import org.health.assignment.healthzassignment.dto.UserDto;
 import org.health.assignment.healthzassignment.exception.BadRequestException;
 import org.health.assignment.healthzassignment.service.IUserService;
 import org.health.assignment.healthzassignment.utils.TokenUtil;
+import org.health.assignment.healthzassignment.validation.CreateUserGroup;
+import org.health.assignment.healthzassignment.validation.UpdateUserGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.*;
+
+import javax.security.sasl.AuthenticationException;
 
 /**
  * Controller class to handle  the user related API.
@@ -20,25 +27,31 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/v1/user")
 public class UserController {
 
-    @Autowired
-    private IUserService userService;
+    private final IUserService userService;
 
-    @Autowired
-    private HttpServletRequest request;
+    private final TokenUtil tokenUtil;
 
-    @Autowired
-    private TokenUtil tokenUtil;
+    private final HttpServletRequest request;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UserController.class);
 
+    @Autowired
+    public UserController(IUserService userService, TokenUtil tokenUtil, HttpServletRequest request) {
+        this.userService = userService;
+        this.tokenUtil = tokenUtil;
+        this.request = request;
+    }
+
     /**
-     * This API will create the user.
+     * Endpoint for creating a new user.
      *
-     * @param userDto
-     * @return
+     * @param userDto the user data transfer object containing details of the user to be created,
+     *                validated against the CreateUserGroup constraints
+     * @return a ResponseEntity containing the saved user details
      */
-    @PostMapping(consumes = "application/json", produces = "application/json")
-    public ResponseEntity<UserDto> createUser(@RequestBody UserDto userDto) {
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<UserDto> createUser(@RequestBody @Validated(CreateUserGroup.class) UserDto userDto) {
+        validateQueryParameters();
         LOGGER.debug("Creating the user.");
         UserDto savedUser = userService.saveUserDetails(userDto);
         return ResponseEntity.ok().body(savedUser);
@@ -48,24 +61,20 @@ public class UserController {
      * This API will get the user details of that email address
      * which is provided in authorization token as basic token.
      *
-     * @return
+     * @return User details.
      */
     @GetMapping(value = "/self", produces = "application/json")
-    public ResponseEntity<UserDto> getSelfUserDetails() {
-
-        if (request.getQueryString() != null) {
-            throw new BadRequestException("Query Parameters are not allowed.");
-        }
-
-        String authorizationToken = request.getHeader("Authorization");
-        // Validate the token.
-        boolean isTokenValid = this.tokenUtil.validateToken(authorizationToken);
-        if (!isTokenValid) {
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-        }
-        String emailAddress = this.tokenUtil.getEmailAddressFromToken(authorizationToken);
+    public ResponseEntity<UserDto> getSelfUserDetails() throws AuthenticationException {
+        validateQueryParameters();
+        String emailAddress = this.tokenUtil.validateAndGetEmailAddressFromToken();
         UserDto savedUser = userService.getUserDetails(emailAddress);
         return ResponseEntity.ok().body(savedUser);
+    }
+
+    private void validateQueryParameters() {
+        if (request.getQueryString() != null) {
+            throw new BadRequestException("Query Parameters are not allowed for this API.");
+        }
     }
 
     /**
@@ -76,21 +85,23 @@ public class UserController {
      * @return
      */
     @PutMapping(value = "/self", produces = "application/json")
-    public ResponseEntity<UserDto> updateSelfUserDetails(@RequestBody UserDto userDto) {
-
-        if (request.getQueryString() != null) {
-            throw new BadRequestException("Query Parameters are not allowed.");
-        }
-
-        String authorizationToken = request.getHeader("Authorization");
-        //Validate the token.
-        boolean isTokenValid = this.tokenUtil.validateToken(authorizationToken);
-        if (!isTokenValid) {
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-        }
-        String emailAddress = this.tokenUtil.getEmailAddressFromToken(authorizationToken);
+    public ResponseEntity<UserDto> updateSelfUserDetails(@RequestBody @Validated(UpdateUserGroup.class) UserDto userDto) throws AuthenticationException {
+        validateQueryParameters();
+        String emailAddress = this.tokenUtil.validateAndGetEmailAddressFromToken();
         userService.updateUserDetails(emailAddress, userDto);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @RequestMapping(path = "/self", method = {RequestMethod.PATCH, RequestMethod.DELETE, RequestMethod.POST,
+            RequestMethod.HEAD, RequestMethod.OPTIONS, RequestMethod.TRACE})
+    public void handleUnsupportedMethodForUserSelfApi(HttpServletRequest request) throws HttpRequestMethodNotSupportedException {
+        throw new HttpRequestMethodNotSupportedException(request.getMethod());
+    }
+
+    @RequestMapping(method = {RequestMethod.PATCH, RequestMethod.DELETE, RequestMethod.PUT,
+            RequestMethod.HEAD, RequestMethod.OPTIONS, RequestMethod.TRACE, RequestMethod.GET})
+    public void handleUnsupportedMethodForUserApi(HttpServletRequest request) throws HttpRequestMethodNotSupportedException {
+        throw new HttpRequestMethodNotSupportedException(request.getMethod());
     }
 
 

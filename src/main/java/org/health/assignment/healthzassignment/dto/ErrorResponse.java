@@ -1,17 +1,17 @@
 package org.health.assignment.healthzassignment.dto;
 
 public class ErrorResponse {
-    private String error;
+    private String errorMessage;
 
     public ErrorResponse(String error) {
-        this.error = error;
+        this.errorMessage = error;
     }
 
-    public String getError() {
-        return error;
+    public String getErrorMessage() {
+        return errorMessage;
     }
 
-    public void setError(String error) {
-        this.error = error;
+    public void setErrorMessage(String errorMessage) {
+        this.errorMessage = errorMessage;
     }
 }

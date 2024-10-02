@@ -1,11 +1,13 @@
 package org.health.assignment.healthzassignment.utils;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.health.assignment.healthzassignment.model.User;
 import org.health.assignment.healthzassignment.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import javax.security.sasl.AuthenticationException;
 import java.util.Base64;
 import java.util.Optional;
 
@@ -15,45 +17,41 @@ import java.util.Optional;
 @Service
 public class TokenUtil {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
+
+    private final HttpServletRequest request;
+
+    public TokenUtil(UserRepository userRepository, PasswordEncoder passwordEncoder, HttpServletRequest request) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.request = request;
+    }
 
     /**
      * Validate the basic token using the email address and password provided.
      * If user exist with that email address and password is correct then only
      * this method will return true.
      *
-     * @param token
      * @return whether token is valid or not.
      */
-    public boolean validateToken(String token) {
-        if (token != null && token.startsWith("Basic ")) {
-            String base64Credentials = token.substring("Basic ".length()).trim();
+    public String validateAndGetEmailAddressFromToken() throws AuthenticationException {
+        String basicAuthToken = request.getHeader(HttpHeaders.AUTHORIZATION);
+        if (basicAuthToken != null && basicAuthToken.startsWith("Basic ")) {
+            String base64Credentials = basicAuthToken.substring("Basic ".length()).trim();
             String credentials = new String(Base64.getDecoder().decode(base64Credentials));
             final String[] values = credentials.split(":", 2);
             String username = values[0];
             String password = values[1];
             Optional<User> user = this.userRepository.findByEmail(username);
-            if (user.isPresent()) {
-                return passwordEncoder.matches(password, user.get().getPassword());
+            if (user.isPresent() && passwordEncoder.matches(password, user.get().getPassword())) {
+                return values[0]; // return email address
+            } else {
+                // Either user does not exist or password is invalid.
+                throw new AuthenticationException("Invalid credentials");
             }
         }
-        return false;
-    }
-
-    /**
-     * Get the email address from the provided token in Authorization header.
-     *
-     * @param token
-     * @return Parsed email address from the token.
-     */
-    public String getEmailAddressFromToken(String token) {
-        String base64Credentials = token.substring("Basic ".length()).trim();
-        String credentials = new String(Base64.getDecoder().decode(base64Credentials));
-        final String[] values = credentials.split(":", 2);
-        return values[0];
+        throw new AuthenticationException("Invalid credentials");
     }
 }

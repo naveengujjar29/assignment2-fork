@@ -1,6 +1,12 @@
 package org.health.assignment.healthzassignment.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Null;
+import jakarta.validation.constraints.Size;
+import org.health.assignment.healthzassignment.validation.CreateUserGroup;
+import org.health.assignment.healthzassignment.validation.UpdateUserGroup;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -8,23 +14,33 @@ import java.util.UUID;
 
 /**
  * Class to interact for user details request model.
- *
  */
 public class UserDto implements Serializable {
 
     @JsonProperty(value = "id", access = JsonProperty.Access.READ_ONLY)
+    @Null(message = "Id field can not be provided.")
     private UUID id;
 
     @JsonProperty("first_name")
+    @NotBlank(message = "first name cannot be blank")
+    @Size(min = 1, max = 255)
     private String firstName;
 
     @JsonProperty("last_name")
+    @NotBlank(message = "Last name cannot be blank")
+    @Size(min = 1, max = 255)
     private String lastName;
 
     @JsonProperty("email")
+    @NotBlank(groups = CreateUserGroup.class, message = "Email should not be empty")
+    @Null(groups = UpdateUserGroup.class, message = "Email cannot be updated.")
+    @Email(groups = CreateUserGroup.class, message = "Provide a valid email")
+    @Size(min = 1, max = 255)
     private String email;
 
     @JsonProperty(value = "password", access = JsonProperty.Access.WRITE_ONLY)
+    @NotBlank(message = "password should not be blank")
+    @Size(min = 8, max = 15)
     private String password;
 
     @JsonProperty(value = "account_created", access = JsonProperty.Access.READ_ONLY)

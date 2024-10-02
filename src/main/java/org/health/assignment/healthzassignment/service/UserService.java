@@ -27,15 +27,9 @@ public class UserService implements IUserService {
 
     @Override
     public UserDto saveUserDetails(UserDto userDto) {
-        // Check for the required fields before proceeding further.
-        if (userDto.getFirstName() == null || userDto.getLastName() == null ||
-                userDto.getEmail() == null || userDto.getPassword() == null) {
-            throw new BadRequestException("Required fields have not been provided.");
-        }
-
         Optional<User> existingUser = this.userRepository.findByEmail(userDto.getEmail());
         if (existingUser.isPresent()) {
-            throw new BadRequestException("User already exist with this email id.");
+            throw new BadRequestException("A user already exist with this email id.");
         }
         userDto.setPassword(passwordEncoder.encode(userDto.getPassword()));
         User user = (User) objectConverter.convert(userDto, User.class);
@@ -46,14 +40,14 @@ public class UserService implements IUserService {
     @Override
     public UserDto getUserDetails(String emailId) {
         Optional<User> existingUser = this.userRepository.findByEmail(emailId);
-        return (UserDto) this.objectConverter.convert(existingUser.get(), UserDto.class);
+        if (existingUser.isPresent()) {
+            return (UserDto) this.objectConverter.convert(existingUser.get(), UserDto.class);
+        }
+        throw new BadRequestException("User does not exist with this email id:" + emailId);
     }
 
     @Override
     public UserDto updateUserDetails(String tokenEmailAddress, UserDto userDto) {
-        if (userDto.getEmail() != null || userDto.getAccountCreated() != null || userDto.getAccountUpdated() != null) {
-            throw new BadRequestException("User is trying to update non-allowed fields.");
-        }
         Optional<User> existingUser = this.userRepository.findByEmail(tokenEmailAddress);
         if (existingUser.isPresent()) {
             existingUser.get().setFirstName(userDto.getFirstName());

@@ -3,17 +3,16 @@ package org.health.assignment.healthzassignment.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.servlet.http.HttpServletRequest;
+import org.health.assignment.healthzassignment.exception.BadRequestException;
 import org.health.assignment.healthzassignment.service.IHealthCheck;
+import org.health.assignment.healthzassignment.utils.CommonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.annotation.*;
 
 //api's entry point
 
@@ -26,28 +25,38 @@ public class HealthController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HealthController.class);
 
+    private final IHealthCheck healthCheck;
+
+    private final CommonUtils commonUtils;
 
     @Autowired
-    private IHealthCheck healthCheck;
+    public HealthController(IHealthCheck healthCheck, CommonUtils commonUtils) {
+        this.healthCheck = healthCheck;
+        this.commonUtils = commonUtils;
+    }
 
     @GetMapping
     public ResponseEntity<Void> checkDatabaseHealth(@RequestBody(required = false) JsonNode body, HttpServletRequest httpServletRequest) {
         if (body != null) {
-            LOGGER.error("Body is not supported in GET API.");
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            LOGGER.error("Payload is not supported in GET API.");
+            throw new BadRequestException("Payload is not supported in GET API.");
         }
-        if(httpServletRequest.getQueryString() != null) {
+        if (httpServletRequest.getQueryString() != null) {
             LOGGER.error("Query Parameter is not supported in this API.");
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            throw new BadRequestException("Query Parameter is not supported in this API.");
         }
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Pragma", "no-cache");
-        headers.add("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
         boolean connectionStatus = healthCheck.checkDBConnectionStatus();
         if (connectionStatus) {
             LOGGER.info("Failed to get the connection.");
-            return new ResponseEntity<>(headers, HttpStatus.OK);
+            return new ResponseEntity<>(commonUtils.getHeaders(), HttpStatus.OK);
         }
-        return new ResponseEntity<>(headers, HttpStatus.SERVICE_UNAVAILABLE);
+        return new ResponseEntity<>(commonUtils.getHeaders(), HttpStatus.SERVICE_UNAVAILABLE);
     }
+
+    @RequestMapping(method = {RequestMethod.PATCH, RequestMethod.DELETE, RequestMethod.POST,
+            RequestMethod.HEAD, RequestMethod.OPTIONS, RequestMethod.TRACE})
+    public void handleUnsupportedMethodForHealthzApi(HttpServletRequest request) throws HttpRequestMethodNotSupportedException {
+        throw new HttpRequestMethodNotSupportedException(request.getMethod());
+    }
+
 }
