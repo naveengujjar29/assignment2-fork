@@ -52,6 +52,7 @@ public class UserController {
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<UserDto> createUser(@RequestBody @Validated(CreateUserGroup.class) UserDto userDto) {
         validateQueryParameters();
+        validateReadOnlyFields(userDto);
         LOGGER.debug("Creating the user.");
         UserDto savedUser = userService.saveUserDetails(userDto);
         return ResponseEntity.ok().body(savedUser);
@@ -77,6 +78,16 @@ public class UserController {
         }
     }
 
+    private void validateReadOnlyFields(UserDto user) {
+        if (user.getId() != null) {
+            throw new BadRequestException("ID field is read only.");
+        } else if (user.getAccountCreated() != null) {
+            throw new BadRequestException("account_created field cannot be provided.");
+        } else if (user.getAccountUpdated() != null) {
+            throw new BadRequestException("account_updated field cannot be provided.");
+        }
+    }
+
     /**
      * This API will update the user details of user associated with that email
      * address which is provided in Authorization header as basic token.
@@ -87,6 +98,7 @@ public class UserController {
     @PutMapping(value = "/self", produces = "application/json")
     public ResponseEntity<UserDto> updateSelfUserDetails(@RequestBody @Validated(UpdateUserGroup.class) UserDto userDto) throws AuthenticationException {
         validateQueryParameters();
+        validateReadOnlyFields(userDto);
         String emailAddress = this.tokenUtil.validateAndGetEmailAddressFromToken();
         userService.updateUserDetails(emailAddress, userDto);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);

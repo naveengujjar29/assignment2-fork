@@ -1,10 +1,7 @@
 package org.health.assignment.healthzassignment.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Null;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import org.health.assignment.healthzassignment.validation.CreateUserGroup;
 import org.health.assignment.healthzassignment.validation.UpdateUserGroup;
 
@@ -17,18 +14,18 @@ import java.util.UUID;
  */
 public class UserDto implements Serializable {
 
-    @JsonProperty(value = "id", access = JsonProperty.Access.READ_ONLY)
-    @Null(message = "Id field can not be provided.")
+    @JsonProperty("id")
+    @Null(message = "Id field can not be provided. Read only field.", groups = {CreateUserGroup.class, UpdateUserGroup.class})
     private UUID id;
 
     @JsonProperty("first_name")
-    @NotBlank(message = "first name cannot be blank")
-    @Size(min = 1, max = 255)
+    @NotBlank(message = "first name cannot be blank", groups = {CreateUserGroup.class, UpdateUserGroup.class})
+    @Size(min = 1, max = 255, groups = {CreateUserGroup.class, UpdateUserGroup.class})
     private String firstName;
 
     @JsonProperty("last_name")
-    @NotBlank(message = "Last name cannot be blank")
-    @Size(min = 1, max = 255)
+    @NotBlank(message = "Last name cannot be blank", groups = {CreateUserGroup.class, UpdateUserGroup.class})
+    @Size(min = 1, max = 255, groups = {CreateUserGroup.class, UpdateUserGroup.class})
     private String lastName;
 
     @JsonProperty("email")
@@ -39,14 +36,16 @@ public class UserDto implements Serializable {
     private String email;
 
     @JsonProperty(value = "password", access = JsonProperty.Access.WRITE_ONLY)
-    @NotBlank(message = "password should not be blank")
-    @Size(min = 8, max = 15)
+    @NotBlank(message = "password should not be blank", groups = {CreateUserGroup.class, UpdateUserGroup.class})
+    @NotNull(message = "Password is required.", groups = {CreateUserGroup.class, UpdateUserGroup.class})
+    @Size(min = 8, max = 15, message = "Password size should be between 8 to 15 character.", groups = {CreateUserGroup.class, UpdateUserGroup.class})
     private String password;
 
-    @JsonProperty(value = "account_created", access = JsonProperty.Access.READ_ONLY)
+
+    @JsonProperty(value = "account_created")
     private Date accountCreated;
 
-    @JsonProperty(value = "account_updated", access = JsonProperty.Access.READ_ONLY)
+    @JsonProperty(value = "account_updated")
     private Date accountUpdated;
 
     public UUID getId() {
