@@ -47,7 +47,7 @@ public class HealthController {
         }
         boolean connectionStatus = healthCheck.checkDBConnectionStatus();
         if (connectionStatus) {
-            LOGGER.info("Failed to get the connection.");
+            LOGGER.info("Connection is successful.");
             return new ResponseEntity<>(commonUtils.getHeaders(), HttpStatus.OK);
         }
         return new ResponseEntity<>(commonUtils.getHeaders(), HttpStatus.SERVICE_UNAVAILABLE);
