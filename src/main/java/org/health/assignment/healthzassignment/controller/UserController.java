@@ -31,15 +31,12 @@ public class UserController {
 
     private final TokenUtil tokenUtil;
 
-    private final HttpServletRequest request;
-
     private static final Logger LOGGER = LoggerFactory.getLogger(UserController.class);
 
     @Autowired
-    public UserController(IUserService userService, TokenUtil tokenUtil, HttpServletRequest request) {
+    public UserController(IUserService userService, TokenUtil tokenUtil) {
         this.userService = userService;
         this.tokenUtil = tokenUtil;
-        this.request = request;
     }
 
     /**
@@ -50,8 +47,8 @@ public class UserController {
      * @return a ResponseEntity containing the saved user details
      */
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<UserDto> createUser(@RequestBody @Validated(CreateUserGroup.class) UserDto userDto) {
-        validateQueryParameters();
+    public ResponseEntity<UserDto> createUser(@RequestBody @Validated(CreateUserGroup.class) UserDto userDto, HttpServletRequest request) {
+        validateQueryParameters(request);
         validateReadOnlyFields(userDto);
         LOGGER.debug("Creating the user.");
         UserDto savedUser = userService.saveUserDetails(userDto);
@@ -65,14 +62,14 @@ public class UserController {
      * @return User details.
      */
     @GetMapping(value = "/self", produces = "application/json")
-    public ResponseEntity<UserDto> getSelfUserDetails() throws AuthenticationException {
-        validateQueryParameters();
+    public ResponseEntity<UserDto> getSelfUserDetails(HttpServletRequest request) throws AuthenticationException {
+        validateQueryParameters(request);
         String emailAddress = this.tokenUtil.validateAndGetEmailAddressFromToken();
         UserDto savedUser = userService.getUserDetails(emailAddress);
         return ResponseEntity.ok().body(savedUser);
     }
 
-    private void validateQueryParameters() {
+    private void validateQueryParameters(HttpServletRequest request) {
         if (request.getQueryString() != null) {
             throw new BadRequestException("Query Parameters are not allowed for this API.");
         }
@@ -80,6 +77,7 @@ public class UserController {
 
     private void validateReadOnlyFields(UserDto user) {
         if (user.getId() != null) {
+
             throw new BadRequestException("ID field is read only.");
         } else if (user.getAccountCreated() != null) {
             throw new BadRequestException("account_created field cannot be provided.");
@@ -96,8 +94,8 @@ public class UserController {
      * @return
      */
     @PutMapping(value = "/self", produces = "application/json")
-    public ResponseEntity<UserDto> updateSelfUserDetails(@RequestBody @Validated(UpdateUserGroup.class) UserDto userDto) throws AuthenticationException {
-        validateQueryParameters();
+    public ResponseEntity<UserDto> updateSelfUserDetails(@RequestBody @Validated(UpdateUserGroup.class) UserDto userDto, HttpServletRequest request) throws AuthenticationException {
+        validateQueryParameters(request);
         validateReadOnlyFields(userDto);
         String emailAddress = this.tokenUtil.validateAndGetEmailAddressFromToken();
         userService.updateUserDetails(emailAddress, userDto);

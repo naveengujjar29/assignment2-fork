@@ -1,7 +1,9 @@
 package org.health.assignment.healthzassignment.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import jakarta.validation.constraints.*;
+import org.health.assignment.healthzassignment.utils.UUIDDeserializer;
 import org.health.assignment.healthzassignment.validation.CreateUserGroup;
 import org.health.assignment.healthzassignment.validation.UpdateUserGroup;
 
@@ -15,6 +17,7 @@ import java.util.UUID;
 public class UserDto implements Serializable {
 
     @JsonProperty("id")
+    @JsonDeserialize(using = UUIDDeserializer.class)
     @Null(message = "Id field can not be provided. Read only field.", groups = {CreateUserGroup.class, UpdateUserGroup.class})
     private UUID id;
 
