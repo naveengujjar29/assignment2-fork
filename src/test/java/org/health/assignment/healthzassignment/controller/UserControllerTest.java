@@ -59,7 +59,7 @@ public class UserControllerTest {
         mockMvc.perform(MockMvcRequestBuilders.post("/v1/user")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(inputJson))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.first_name").value("Dummy"))
                 .andExpect(jsonPath("$.last_name").value("user"))
