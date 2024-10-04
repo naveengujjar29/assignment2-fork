@@ -18,13 +18,15 @@ jobs:
         uses: actions/setup-java@v2
         with:
           java-version: '21'
+          distribution: 'temurin'  # Specify the distribution if needed
 
       - name: Cache Maven packages
         uses: actions/cache@v2
         with:
           path: ~/.m2
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-maven
+          restore-keys: |
+            ${{ runner.os }}-maven
 
       - name: Install dependencies
         run: mvn install --no-transfer-progress --quiet
