@@ -52,7 +52,7 @@ public class UserController {
         validateReadOnlyFields(userDto);
         LOGGER.debug("Creating the user.");
         UserDto savedUser = userService.saveUserDetails(userDto);
-        return ResponseEntity.ok().body(savedUser);
+        return ResponseEntity.created(null).body(savedUser);
     }
 
     /**
