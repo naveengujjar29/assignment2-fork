@@ -134,3 +134,4 @@ Be sure to pass the Authorization header with Basic token.
 curl --location 'http://localhost:8080/v1/user/self' \
 --header 'Authorization: Basic bmF2ZWVua2FyaGFuYTI5QGdtYWlsLmNvbTpJbmRpYW4xMjM0' 
 ```
+Post /vi/user API wil return 201 status.
