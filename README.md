@@ -16,6 +16,8 @@ To build the application, you need to compile the code and package it as a JAR f
 
 ```bash
 mvn clean package
+OR
+mvn clean install
 ```
 
 This will create a runnable JAR file in the target/ directory, for example:
