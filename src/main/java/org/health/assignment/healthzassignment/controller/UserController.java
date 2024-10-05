@@ -78,7 +78,7 @@ public class UserController {
     private void validateReadOnlyFields(UserDto user) {
         if (user.getId() != null) {
 
-            throw new BadRequestException("ID field is read only.");
+            throw new BadRequestException("ID field is read only. Remove this field from payload.");
         } else if (user.getAccountCreated() != null) {
             throw new BadRequestException("account_created field cannot be provided.");
         } else if (user.getAccountUpdated() != null) {
