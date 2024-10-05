@@ -1,4 +1,4 @@
-# Spring Boot Health Check Application
+# Spring Boot Health Check and User Application
 
 This is a simple Spring Boot application that provides a `/healthz` endpoint to check the connection to a MySQL database. The application is built using Maven and can be run as a standalone JAR file.
 
